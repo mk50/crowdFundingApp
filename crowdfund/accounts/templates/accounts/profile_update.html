@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+<!-- page title -->
+{% block title %} Edit profile {% endblock %}
+
+<!-- page nav -->
+{% block navbar %} {% include 'navbar.html' %} {% endblock %}
+
+<!-- page content -->
+{% block content %}
+<div class="row">
+  <div class="col-2"></div>
+    <div class="col-8">
+      <div class="card mt-5 shadow">
+        <div class="card-body">
+          <div class="card-title py-3">
+            {% if request.user.pk == user.pk %}
+                <h2>Edit your personal information</h2>
+                </div>
+                    <form action="{% url 'accounts:profile_update' user.pk %}" method="post" enctype='multipart/form-data' novalidate>
+                    {% csrf_token %}
+                    {% include 'includes/form.html' %}
+                    <div class="text-center col-12">
+                    <input class=" btn btn-success m-4 col-2 p-2" type="submit" value="Save">
+                    <input class=" btn btn-secondary m-4 col-2 p-2" type="reset" value="Reset">
+                    <a href="{% url 'accounts:profile_delete' user.pk %}" class="btn btn-danger m-4 col-2 p-2">Delete Account</a>
+                    </div>
+                    </form>
+                </div>
+            {% else %}
+              <h3 class="alert-danger danger p-5">action not allowed</h3>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  <div class="col-2"></div>
+</div>
+{% endblock content %}

@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+<!-- page title -->
+{% block title %} {{ project.title }} {% endblock %}
+
+<!-- page nav -->
+{% block navbar %} {% include 'navbar.html' %} {% endblock %}
+
+<!-- page content -->
+{% block content %}
+<div class="container d-flex justify-content-center">
+    <div class="card p-3 m-2 col-6 shadow">
+
+        <div class="d-flex justify-content-between">
+            <h3>{{ project.title }} | {{ project.category }}</h3>
+            <div class="dropdown">
+              <a class="link-dark text-decoration-none fw-bolder m-1" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">. . .</a>
+              <ul class="dropdown-menu rounded-3 shadow-lg" aria-labelledby="dropdownMenuButton1">
+                {% if request.user == project.user %}
+                <li><a class="dropdown-item" href="{% url 'projects:project_cancel' project.pk %}">cancel project</a></li>
+                {% else %}
+                    <li><a class="dropdown-item" href="{% url 'accounts:profile' project.user.pk %}">owner profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'projects:project_rate' project.pk %}">Rate</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">report</a></li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        <div>
+            {% for tag in project.tags.all %}
+            <button
+            type="button"
+            class="btn btn-outline-primary btn-sm"
+              disabled
+              >
+              {{ tag }}
+            </button>
+            {% endfor %}
+          </div>
+          <br>
+          <div id="images-carousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner bg-dark text-center">
+                <div class="carousel-item active">
+                  <img src="{{project.images.url}}" class="testi-overly d-block w-100" alt="sliderImg">
+                </div>
+                {% for image in images %}
+                    <div class="carousel-item">
+                        <img src="{{image.image.url}}" class="testi-overly d-block w-100" alt="sliderImg">
+                        </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#images-carousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#images-carousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        <p><B>{{ project.details }}</B></p>
+        <div >
+        {% if project.avg_rate > 4.4 %}
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star checked  " style="float: left;"></i>
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        {% elif project.avg_rate > 3.4 %}
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star  checked" style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        {% elif project.avg_rate > 2.4 %}
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star" style="float: left;"></i>
+        <i class="fa fa-star" style="float: left;"></i>
+        {% elif project.avg_rate > 1.4 %}
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star  checked " style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        <i class="fa fa-star  " style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        {% elif project.avg_rate > 0.4 %}
+        <i class="fa fa-star checked " style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        <i class="fa fa-star  " style="float: left;"></i>
+        <i class="fa fa-star   " style="float: left;"></i>
+        {% endif %}
+    </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Target</th>
+                    <th>Current</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ project.total_target }} EGP</td>
+                    <td>{{ project.current }} EGP</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Doner</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donation in project.donation_set.all %}
+                <tr>
+                    <td><a href="{% url 'accounts:profile' donation.user.pk %}">{{ donation.user.username }}</a></td>
+                    <td>{{ donation.amount }} EGP</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% if not project.target_reached and project.user != request.user %}
+            <div class="text-center">
+                <a class="btn btn-success btn-lg col-8" href="{% url 'projects:make_donation' project.pk %}">Make a donation</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="card p-3 col-6 m-2 shadow">
+        <form class="form" action="{% url 'projects:project_comment' project.pk %}" method="post">
+            {% csrf_token %}
+            <div class="mb-3 justify-content-end">
+                <input type="text" name="comment" class="form-control" placeholder="Leave a comment here">
+                <input class=" my-1 btn btn-primary" type="submit" value="Comment">
+            </div>
+        </form>
+        <div class="list-group">
+            {% for comment in project.comment_set.all reversed %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <a href="{% url 'accounts:profile' comment.user.pk %}"><h5 class="mb-1">{{ comment.user.username }}</h5></a>
+                    <div class="dropdown">
+                        <a class="link-dark text-decoration-none fw-bolder m-1" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">. . .</a>
+                        <ul class="dropdown-menu rounded-3 shadow-lg" aria-labelledby="dropdownMenuButton1">
+                            {% if request.user == comment.user %}
+                              <li><a class="dropdown-item" href="{% url 'projects:project_reply' project.pk comment.pk%}">reply</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item" href="#">delete</a></li>
+                            {% else %}
+                              <li><a class="dropdown-item" href="{% url 'projects:project_reply' project.pk comment.pk%}">reply</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item" href="{% url 'projects:report_comment' comment.pk %}">report</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                <small class="text-muted mb-1">{{ comment.created }}</small>
+                <p class="mb-1">{{ comment.comment }}</p>
+              
+                <div class="list-group">
+                    {% for reply in comment.reply_set.all reversed %}
+                    
+                    <div class="list-group-item" >
+                        <div class="d-flex w-100 justify-content-between">
+                            <a href="{% url 'accounts:profile' reply.user.pk %}"><h5 class="mb-1">{{ reply.user.username }}</h5></a>
+                            {% comment %} {% if request.user != reply.user %}
+                            <div class="dropdown">
+                                <a class="link-dark text-decoration-none fw-bolder m-1" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">. . .</a>
+                                <ul class="dropdown-menu rounded-3 shadow-lg" aria-labelledby="dropdownMenuButton1">
+                                      <li><a class="dropdown-item" href="{% url 'projects:report_comment' reply.pk %}">report</a></li>
+                                </ul>
+                            </div>
+                            {% endif %} {% endcomment %}
+                            <small class="text-muted mb-1">{{ reply.created }}</small>
+                        </div>
+                        <p class="mb-1">{{reply.reply }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+<div class="container">
+    <div class="row"><h2>Similar Projects</h2></div>
+    <div class="row">
+        {% for project in similar_projects %}
+            {% if request.user != project.user %}
+            <div class="card p-1 col-4 shadow">
+                <img src="{{ project.images.url }}" />
+                <div class="d-flex justify-content-between">
+                    <h5>{{ project.title }} | {{ project.category }}</h5>
+                    <div class="dropdown">
+                    <a class="link-dark text-decoration-none fw-bolder m-1" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">. . .</a>
+                    <ul class="dropdown-menu rounded-3 shadow-lg" aria-labelledby="dropdownMenuButton1">
+
+                        {% if user.pk in rating.user_set.all%}
+                        <li><a class="dropdown-item" href="{% url 'projects:make_donation' project.pk %}">Donate</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:profile' project.user.pk %}">Owner profile</a></li>
+                        {%else%}
+                        <li><a class="dropdown-item" href="{% url 'projects:make_donation' project.pk %}">Donate</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:profile' project.user.pk %}">Owner profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'projects:project_rate' project.pk %}">Rate</a></li>
+                        <li><a class="dropdown-item" href="{% url 'projects:report_project' project.pk %}">Report</a></li>
+
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+                        
+                    </ul>
+                    </div>
+                </div>
+                <div>
+                    {% for tag in project.tags.all %}
+                    <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    disabled
+                    >
+                    {{ tag }}
+                    </button>
+                    {% endfor %}
+                </div>
+                <hp>{{ project.get_details }}... <a class="link-dark" href="{% url 'projects:project_details' project.pk %}">see more</a></hp>
+                </div>
+            {% endif %}
+        {% empty %}
+            <h4>No similar projects.</h4>
+        {% endfor %}
+    </div>
+</div>
+<style>
+    .checked{
+    color: orange;
+  }
+  </style>
+{% endblock %}
